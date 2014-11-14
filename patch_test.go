@@ -1,8 +1,11 @@
 package jsonpatch
 
 import (
-	"github.com/stretchr/testify/assert"
+	"encoding/json"
+	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMakePatch(t *testing.T) {
@@ -38,6 +41,39 @@ func TestApplyPatchFromString(t *testing.T) {
 	val, found := doc["baz"]
 	assert.True(t, found)
 	assert.Equal(t, "qux", val.(string))
+}
+
+// TestPatchMarshalJSON_empty ensures that an empty patch marshals as an empty
+// array.
+func TestPatchMarshalJSON_empty(t *testing.T) {
+	js, err := json.Marshal(&Patch{nil})
+	assert.Nil(t, err)
+	assert.Equal(t, string(js), "[]")
+}
+
+// TestPatchJSON ensures that marshaled patches are unmarshaled to an identical
+// patch.
+func TestPatchJSON(t *testing.T) {
+	for i, test := range []struct {
+		p *Patch
+	}{
+		{&Patch{[]PatchOperation{}}},
+		{&Patch{[]PatchOperation{
+			{Op: Add, Path: "/foo", Value: "bar"},
+		}}},
+		{&Patch{[]PatchOperation{
+			{Op: Remove, Path: "/foo"},
+			{Op: Add, Path: "/bar", Value: "baz"},
+		}}},
+	} {
+		var p *Patch
+		index := fmt.Sprintf("test %d", i)
+		js, err := json.Marshal(test.p)
+		assert.Nil(t, err, index)
+		err = json.Unmarshal(js, &p)
+		assert.Nil(t, err, index)
+		assert.Equal(t, p, test.p, index)
+	}
 }
 
 func TestLcs(t *testing.T) {

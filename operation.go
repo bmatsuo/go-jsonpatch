@@ -4,10 +4,11 @@ import (
 	//"encoding/json"
 	//"github.com/bitly/go-simplejson"
 	"fmt"
-	ptr "github.com/xeipuuv/gojsonpointer"
 	"reflect"
 	"strconv"
 	"strings"
+
+	ptr "github.com/xeipuuv/gojsonpointer"
 )
 
 // Operation is a...
@@ -23,6 +24,10 @@ const (
 	Copy    OperationType = "copy"
 )
 
+// PatchOperation represents a single modification to a JSON document.
+//
+// BUG:
+// The Value field does not marshal correctly when nil.
 type PatchOperation struct {
 	From  string        `json:"from,omitempty"`
 	Op    OperationType `json:"op"`

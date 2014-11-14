@@ -61,6 +61,15 @@ type Patch struct {
 	Operations []PatchOperation
 }
 
+// MarshalJSON implements the json.Marshaler interface.
+func (p *Patch) MarshalJSON() ([]byte, error) {
+	if len(p.Operations) == 0 {
+		return []byte("[]"), nil
+	}
+	return json.Marshal(p.Operations)
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
 func (p *Patch) UnmarshalJSON(b []byte) error {
 	ops := []PatchOperation{}
 	err := json.Unmarshal(b, &ops)
@@ -71,6 +80,7 @@ func (p *Patch) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// Apply applies each patch operation to doc, modifying it in place.
 func (p *Patch) Apply(doc interface{}) (err error) {
 	for _, op := range p.Operations {
 		err = op.Apply(doc)
